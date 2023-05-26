@@ -1,30 +1,47 @@
-<script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
+  <div class="wrapper w-screen h-screen">
+    <TabMenu :model="items" />
+    <router-view />
   </div>
-  <HelloWorld msg="Vite + Vue" />
 </template>
+<script setup lang="ts">
+import TabMenu from "primevue/tabmenu";
+import routes from "./router/routes";
+import dayjs from "dayjs";
+import "dayjs/locale/ko";
+dayjs.locale("ko");
 
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+const items = routes.slice(1, routes.length).map((route) => {
+  return {
+    label: route.name,
+    to: route.path,
+  };
+});
+</script>
+<style lang="scss">
+.wrapper {
+  min-width: rem(375px);
+  max-width: rem(768px);
+  margin: 0 auto;
+  border: rem(1px) solid $gray500;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+
+.p-tabmenuitem.p-highlight {
+  .p-menuitem-link {
+    color: $purple500 !important;
+    border-color: $purple500 !important;
+    font-weight: 700 !important;
+  }
 }
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+
+.p-button {
+  background: $purple500 !important;
+  border-color: $purple500 !important;
+}
+
+.p-button.p-button-text {
+  background-color: transparent !important;
+  color: $purple500 !important;
+  border-color: transparent !important;
 }
 </style>
