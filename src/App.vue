@@ -1,7 +1,9 @@
 <template>
   <div class="wrapper w-screen h-screen">
     <TabMenu :model="items" />
-    <router-view />
+    <section class="view-wrapper">
+      <router-view />
+    </section>
   </div>
 </template>
 <script setup lang="ts">
@@ -19,11 +21,16 @@ const items = routes.slice(1, routes.length).map((route) => {
 });
 </script>
 <style lang="scss">
+
 .wrapper {
   min-width: rem(375px);
   max-width: rem(768px);
   margin: 0 auto;
   border: rem(1px) solid $gray500;
+
+  .view-wrapper {
+    height: calc(100% - rem(58px)); // 58px is tab menu height
+  }
 }
 
 .p-tabmenuitem.p-highlight {
@@ -34,7 +41,8 @@ const items = routes.slice(1, routes.length).map((route) => {
   }
 }
 
-.p-button {
+.p-button,
+.p-checkbox-box.p-highlight {
   background: $purple500 !important;
   border-color: $purple500 !important;
 }

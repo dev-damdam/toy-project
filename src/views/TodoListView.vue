@@ -1,6 +1,11 @@
 <template>
-  <section class="relative p-2">
-    <TodoCalendar class="w-full" :todo-list="todoList" />
+  <article class="relative">
+    <TodoCalendar
+      class="todo-calendar-wrapper"
+      :todo-list="todoList"
+      @events="setTodoList"
+      @height="setCalendarHeight"
+    />
     <Button
       class="pencil-button"
       icon="pi pi-pencil"
@@ -8,20 +13,43 @@
       aria-label="pencil"
       @click="openTodoModal"
     />
-  </section>
-  <AddTodoModal v-model="modalVisible" @add="addTodo" />
+  </article>
+  <Divider class="m-0" />
+  <article ref="list" class="todo-list-wrapper">
+    <Todo
+      v-for="todo in selectedTodoList"
+      :todo="todo"
+      @delete="deleteTodo"
+      @complete="completeTodo"
+      @edit="editTodo"
+    />
+  </article>
+  <AddTodoModal
+    v-model="modalVisible"
+    :value="todo"
+    @add="addTodo"
+    @update="updateTodo"
+  />
 </template>
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
+import { TDayTodo, TTodo } from "@/assets/types/TTodoList";
+import lodash from "lodash";
 import Button from "primevue/button";
+import Todo from "@/components/todo-list/Todo.vue";
 import TodoCalendar from "@/components/todo-list/TodoCalendar.vue";
 import AddTodoModal from "@/components/todo-list/AddTodoModal.vue";
-import { TDayTodo, TTodo } from "@/assets/types/TTodoList";
+import Divider from "primevue/divider";
 import utils from "@/utils/utils";
 
 //variables
 const todoList = ref<TDayTodo[]>([]);
+const selectedDate = ref<string>("");
+const selectedTodoList = ref<TTodo[]>([]);
 const modalVisible = ref<boolean>(false);
+const todo = ref<TTodo | undefined>(undefined);
+const calendarHeight = ref<number>(0);
+const list = ref<any | null>(null);
 
 //methods
 const loadTodoList = () => {
@@ -33,24 +61,112 @@ const loadTodoList = () => {
   }
 };
 
-const addTodo = (todo: TTodo) => {
-  const dateIndex = todoList.value.findIndex((item) => item.date === todo.date);
+const addTodo = (_todo: TTodo) => {
+  const dateIndex = todoList.value.findIndex(
+    (item) => item.date === _todo.date
+  );
   if (dateIndex < 0) {
     // 해당 날짜에 todo가 등록되어 있지 않으면
     todoList.value.push({
-      date: todo.date,
-      todo: [todo],
+      date: _todo.date,
+      todo: [_todo],
     });
   } else {
     const todoIndex = todoList.value[dateIndex].todo.findIndex(
-      (item) => item.id === todo.id
+      (item) => item.id === _todo.id
     );
     if (todoIndex < 0) {
-      todoList.value[dateIndex].todo.push(todo);
+      todoList.value[dateIndex].todo.push(_todo);
     }
   }
 
   utils.setItem("todo-list", JSON.stringify(todoList.value));
+};
+
+const updateTodo = (_todo: TTodo, originDate: string) => {
+  const originDateIndex = todoList.value.findIndex(
+    (item) => item.date === originDate
+  );
+
+  const dateIndex = todoList.value.findIndex(
+    (item) => item.date === _todo.date
+  );
+
+  if (originDate !== _todo.date) {
+    const deleteIndex = todoList.value[originDateIndex].todo.findIndex(
+      (item) => item.id === _todo.id
+    );
+    // 기존 등록된 todo 제거
+    todoList.value[originDateIndex].todo.splice(deleteIndex, 1);
+
+    // 해당 날짜에 todo가 등록되어 있지 않으면 추가
+    todoList.value.push({
+      date: _todo.date,
+      todo: [_todo],
+    });
+  } else {
+    const todoIndex = todoList.value[dateIndex].todo.findIndex(
+      (item) => item.id === _todo.id
+    );
+    todoList.value[dateIndex].todo[todoIndex] = _todo;
+  }
+
+  utils.setItem("todo-list", JSON.stringify(todoList.value));
+  todo.value = undefined;
+};
+
+const setTodoList = (date: string, events: TTodo[]) => {
+  // init
+  selectedDate.value = "";
+  selectedTodoList.value.splice(0, selectedTodoList.value.length);
+
+  // allocated
+  selectedDate.value = date;
+  selectedTodoList.value = lodash.cloneDeep(events);
+};
+
+const setCalendarHeight = (height: number) => {
+  list.value.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
+  calendarHeight.value = height;
+};
+
+const deleteTodo = (id: string) => {
+  trigger("delete", id);
+};
+
+const completeTodo = (id: string, state: boolean) => {
+  trigger("complete", id, state);
+};
+
+const editTodo = (id: string) => {
+  trigger("edit", id);
+};
+
+const trigger = (mode: string, todoID: string, value?: any) => {
+  const dateIndex = todoList.value.findIndex(
+    (el) => el.date === selectedDate.value
+  );
+  const todoIndex = todoList.value[dateIndex].todo.findIndex(
+    (el: TTodo) => el.id === todoID
+  );
+  switch (mode) {
+    case "delete":
+      todoList.value[dateIndex].todo.splice(todoIndex, 1);
+      break;
+    case "complete":
+      todoList.value[dateIndex].todo[todoIndex].is_completed = value;
+      break;
+    case "edit":
+      todo.value = todoList.value[dateIndex].todo[todoIndex];
+      modalVisible.value = true;
+  }
+
+  utils.setItem("todo-list", JSON.stringify(todoList.value));
+
+  return;
 };
 
 const openTodoModal = () => {
@@ -63,24 +179,22 @@ loadTodoList();
 <style lang="scss" scoped>
 .pencil-button {
   position: absolute;
-  right: rem(32px);
-  bottom: rem(32px);
+  right: rem(24px);
+  bottom: rem(24px);
 }
 
 .todo-calendar-wrapper {
   width: 100%;
+  padding: rem(8px);
+  box-sizing: border-box;
+}
+.todo-list-wrapper {
+  height: calc(100% - calc(v-bind(calendarHeight) * 1px));
+  overflow-y: auto;
   display: flex;
-  justify-content: center;
-  margin: 1rem 0;
-}
-
-.dropdown-option-color {
-  width: 0.5rem;
-  height: 0.5rem;
-}
-
-.completed-todo {
-  text-decoration: line-through;
+  flex-direction: column;
+  row-gap: rem(8px);
+  padding: rem(8px);
 }
 
 :deep(.p-card .p-card-content) {
