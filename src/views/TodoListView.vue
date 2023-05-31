@@ -32,7 +32,7 @@
   />
 </template>
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { TDayTodo, TTodo } from "@/assets/types/TTodoList";
 import lodash from "lodash";
 import Button from "primevue/button";
@@ -71,6 +71,7 @@ const addTodo = (_todo: TTodo) => {
       date: _todo.date,
       todo: [_todo],
     });
+    setTodoList(_todo.date, [_todo]);
   } else {
     const todoIndex = todoList.value[dateIndex].todo.findIndex(
       (item) => item.id === _todo.id
@@ -78,6 +79,7 @@ const addTodo = (_todo: TTodo) => {
     if (todoIndex < 0) {
       todoList.value[dateIndex].todo.push(_todo);
     }
+    setTodoList(_todo.date, todoList.value[dateIndex].todo);
   }
 
   utils.setItem("todo-list", JSON.stringify(todoList.value));
@@ -104,11 +106,14 @@ const updateTodo = (_todo: TTodo, originDate: string) => {
       date: _todo.date,
       todo: [_todo],
     });
+
+    setTodoList(_todo.date, [_todo]);
   } else {
     const todoIndex = todoList.value[dateIndex].todo.findIndex(
       (item) => item.id === _todo.id
     );
     todoList.value[dateIndex].todo[todoIndex] = _todo;
+    setTodoList(_todo.date, todoList.value[dateIndex].todo);
   }
 
   utils.setItem("todo-list", JSON.stringify(todoList.value));
@@ -165,7 +170,7 @@ const trigger = (mode: string, todoID: string, value?: any) => {
   }
 
   utils.setItem("todo-list", JSON.stringify(todoList.value));
-
+  setTodoList(selectedDate.value, todoList.value[dateIndex].todo);
   return;
 };
 

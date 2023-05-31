@@ -2,7 +2,6 @@
   <Dialog
     v-model:visible="visible"
     modal
-    dismissableMask
     :draggable="false"
     :closable="false"
     header="TODO 추가"
@@ -73,6 +72,12 @@ import shortid from "shortid";
 import dayjs from "dayjs";
 import lodash from "lodash";
 
+type TInputCheck = {
+  name: string;
+  state: boolean;
+  message: string;
+};
+
 const props = defineProps<{
   modelValue: boolean;
   value: TTodo | undefined;
@@ -127,7 +132,28 @@ const changeDropdownValue = (event: any) => {
   todo.value.category.color = event.value.color;
 };
 
+const checkValidation = (): boolean => {
+  if (todo.value.name === "") {
+    alert("할 일을 입력해주세요.");
+    return false;
+  }
+
+  if (todo.value.date === "") {
+    alert("날짜를 선택해주세요.");
+    return false;
+  }
+
+  if (todo.value.category.name === "") {
+    alert("카테고리를 선택해주세요.");
+    return false;
+  }
+
+  return true;
+};
+
 const addTodo = () => {
+  const check = checkValidation();
+  if(check === false) return;
   const id = shortid.generate();
   const reg_date = dayjs().format("YYYY-MM-DD");
   const date = dayjs(todo.value.date).format("YYYY-MM-DD");
@@ -142,6 +168,8 @@ const addTodo = () => {
 };
 
 const updateTodo = () => {
+  const check = checkValidation();
+  if(check === false) return;
   const date = dayjs(todo.value.date).format("YYYY-MM-DD");
   todo.value.date = date;
   const copy = lodash.cloneDeep(todo.value);
