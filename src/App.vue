@@ -21,7 +21,6 @@ const items = routes.slice(1, routes.length).map((route) => {
 });
 </script>
 <style lang="scss">
-
 .wrapper {
   min-width: rem(375px);
   max-width: rem(768px);
@@ -29,6 +28,9 @@ const items = routes.slice(1, routes.length).map((route) => {
   border: rem(1px) solid $gray500;
 
   .view-wrapper {
+    position: relative;
+    top: rem(0px);
+    left: rem(0px);
     height: calc(100% - rem(58px)); // 58px is tab menu height
   }
 }
@@ -51,5 +53,10 @@ const items = routes.slice(1, routes.length).map((route) => {
   background-color: transparent !important;
   color: $purple500 !important;
   border-color: transparent !important;
+}
+
+.p-button.p-button-outlined {
+  background-color: white !important;
+  color: $purple500 !important;
 }
 </style>
