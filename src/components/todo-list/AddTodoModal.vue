@@ -72,12 +72,6 @@ import shortid from "shortid";
 import dayjs from "dayjs";
 import lodash from "lodash";
 
-type TInputCheck = {
-  name: string;
-  state: boolean;
-  message: string;
-};
-
 const props = defineProps<{
   modelValue: boolean;
   value: TTodo | undefined;

@@ -12,7 +12,7 @@
           />
           <label
             :for="todo.id"
-            class="mr-2"
+            class="mr-2 text-truncate"
             :class="todo.is_completed ? 'line-through' : ''"
             >{{ todo.name }}</label
           >
@@ -75,4 +75,9 @@ const deleteTodo = (id: string) => {
   emit("delete", id);
 };
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.text-truncate {
+  width: rem(390px);
+  @include text-truncate(1, 1.5);
+}
+</style>
